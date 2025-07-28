@@ -268,10 +268,22 @@ class JeopardyModel {
 
 class JeopardyView {
   constructor() {
+    this.numTeams = document.getElementById("num-teams");
+    this.teamList = document.querySelector(".team-list");
+    this.teams = {};
     this.squares = document.querySelectorAll(".square");
     this.addCheckboxes();
     this.modal = document.getElementById("modal");
+    this.modalAnswer = document.getElementById("modal-answer");
+    this.modalQuestion = document.getElementById("modal-question");
+    this.modalShowQuestionButton = this.modal.querySelector("#show-question");
+    this.modalTeams = this.modal.querySelector(".modal-teams");
+    this.modalTeamButtons = this.modal.querySelector(".team-buttons");
     this.modalDoneButton = this.modal.querySelector(".done");
+    // Default to 3 until setup modal is implemented
+    const defaultNumTeams = 3;
+    this.updateNumTeams(defaultNumTeams);
+    this.addTeamButtons(defaultNumTeams);
   }
 
   addCheckboxes() {
@@ -280,6 +292,31 @@ class JeopardyView {
       checkbox.type = "checkbox";
       square.appendChild(checkbox);
     });
+  }
+
+  updateNumTeams(numTeams) {
+    this.teamList.innerHTML = "";
+    for (let i = 0; i < numTeams; i++) {
+      const team = document.createElement("li");
+      const teamName = document.createElement("span");
+      teamName.textContent = `Team ${i + 1}:`;
+      team.appendChild(teamName);
+      this.teamList.appendChild(team);
+      const teamScore = document.createElement("span");
+      teamScore.classList.add("team-score");
+      teamScore.dataset.team = i + 1;
+      teamScore.textContent = "0";
+      team.appendChild(teamScore);
+      this.teamList.appendChild(team);
+    }
+  }
+
+  addTeamButtons(numTeams) {
+    for (let i = 0; i < numTeams; i++) {
+      const button = document.createElement("button");
+      button.textContent = `Team ${i + 1}`;
+      this.modalTeamButtons.appendChild(button);
+    }
   }
 
   toggleBorder(square) {
@@ -303,11 +340,8 @@ class JeopardyView {
   }
 
   displayModal(square) {
-    this.modal.style.display = "block";
-    // const modalQuestion = document.getElementById("modal-question");
-    const modalAnswer = document.getElementById("modal-answer");
-    // modalQuestion.textContent = square.question;
-    modalAnswer.textContent = square.answer;
+    this.modalAnswer.textContent = square.answer;
+    this.modalQuestion.textContent = square.question;
     // Show the modal
     modal.classList.add("show");
 
@@ -315,12 +349,26 @@ class JeopardyView {
     setTimeout(() => {
       modal.classList.add("expand");
     }, 500);
+    // Display the Set Winner section
+    setTimeout(() => {
+      // this.modalTeamButtons.classList.remove("hidden");
+      // this.modalTeamButtons.classList.add("show");
+    }, 1000);
   }
 
   hideModal() {
     this.modal.visibility = "hidden";
     this.modal.classList.remove("show");
     this.modal.classList.remove("expand");
+  }
+
+  showQuestion() {
+    this.modalShowQuestionButton.classList.add("hidden");
+    this.modalQuestion.classList.remove("hidden");
+  }
+  hideQuestion() {
+    this.modalShowQuestionButton.classList.remove("hidden");
+    this.modalQuestion.classList.add("hidden");
   }
 }
 
@@ -330,6 +378,15 @@ class JeopardyController {
     this.view = view;
     this.addCheckboxHandlers();
     this.addModalHandlers();
+    this.view.numTeams.addEventListener(
+      "change",
+      this.handleNumTeamsChange.bind(this),
+    );
+  }
+
+  handleNumTeamsChange() {
+    const numTeams = Number(this.view.numTeams.value);
+    this.view.updateNumTeams(numTeams);
   }
 
   addCheckboxHandlers() {
@@ -355,12 +412,21 @@ class JeopardyController {
   }
 
   addModalHandlers() {
-    const modal = document.getElementById("modal");
-    const doneButton = modal.querySelector(".done");
-    doneButton.addEventListener("click", this.handleModelDone.bind(this));
+    this.view.modalDoneButton.addEventListener(
+      "click",
+      this.handleModalDone.bind(this),
+    );
+    this.view.modalShowQuestionButton.addEventListener(
+      "click",
+      this.handleModalShowQuestion.bind(this),
+    );
   }
-  handleModelDone() {
+  handleModalDone() {
+    this.view.hideQuestion();
     this.view.hideModal();
+  }
+  handleModalShowQuestion() {
+    this.view.showQuestion();
   }
 }
 

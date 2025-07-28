@@ -17,34 +17,35 @@ body {
 }
 main {
   display: flex;
+  position: relative;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   background-color: black;
+  container-type: inline-size;
 }
 .board {
+  container-type: inline-size;
+  display: flex;
+  justify-content: center;
+  width: fit-content;
+}
+.columns {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
   box-sizing: border-box;
   aspect-ratio: 16 / 9;
   /* width: 100%; */
-  height: 90vh;
-  border: 50px solid brown;
+  height: 80vh;
+  border: 5vh solid brown;
+  border-bottom: 10vh solid brown;
   border-image: url("./assets/wood-grain.webp") 50 repeat;
+  border-radius: 1em;
   background-color: black;
-  /* display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(6, 1fr); */
-  display: flex;
-  flex-direction: row;
-  /* justify-content: center; */
-  /* align-items: center; */
-  gap: 1em;
   padding: 1em;
-  /* background-color: #f5f5f5;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 1em */
+  /* container-type: inline-size; */
+  /* container-name: "board"; */
 }
 .board section {
   background-color: black;
@@ -67,6 +68,9 @@ main {
   color: black;
   font-size: 8cqw;
   text-align: center;
+}
+.column h2 {
+  margin: 0;
 }
 .column ul {
   display: grid;
@@ -98,6 +102,50 @@ main {
 .square-border {
   border: 2px solid white;
 }
+.scoreboard {
+  display: flex;
+  align-items: center;
+  padding: 1cqh 2cqh;
+  position: absolute;
+  bottom: 2vh;
+  background-color: white;
+  border: 0.5cqw solid black;
+  border-radius: 0.5cqh;
+}
+.scoreboard > * {
+  display: inline-flex;
+}
+.scoreboard header > * {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  font-size: 3cqh;
+}
+
+.team-list {
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  gap: 1em;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+  list-style-position: inside;
+  font-size: 3cqh;
+  /* line-height: 1; */
+}
+.team-list li {
+  padding-left: 2em;
+  background-color: white;
+  color: black;
+  line-height: 1;
+}
+
+.team-score {
+  padding: 0 0 0 0.5em;
+}
 .hidden {
   display: none;
 }
@@ -105,29 +153,13 @@ main {
   transition: opacity 0.5s ease-in-out;
   opacity: 0;
 }
-/*
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: blue;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-evenly;
   align-items: center;
-  z-index: 1000;
-  color: yellow;
-  text-shadow:
-    -1px 0 black,
-    0 1px black,
-    1px 0 black,
-    0 -1px black;
-  font-weight: bold;
-}
-*/
-.modal {
-  position: fixed;
+
   /*
   This adds a container query to the article element
   */
@@ -163,12 +195,6 @@ main {
 .modal.show {
   opacity: 1;
   visibility: visible;
-  /* transform: translate(-50%, -50%) scale(0.5); */
-  /* transition:
-    opacity 0.5s,
-    transform 0.5s,
-    width 0.5s,
-    height 0.5s; */
 }
 
 .modal.show.expand {
@@ -181,14 +207,20 @@ main {
     height 0.5s;
 }
 
-.modal .answer {
-  padding: 20%;
+.modal .answer,
+.modal .question {
+  /* padding: 20%; */
+  padding: 0 10%;
   font-size: 3cqw;
   text-align: center;
   line-height: 2em;
 }
+#modal-question {
+  font-style: italic;
+}
 
 .modal .teams {
+  opacity: 0;
   /* padding: 20%; */
 }
 
@@ -196,7 +228,11 @@ main {
   /* padding: 20%; */
 }
 
-.modal .action {
+/* #show-question {
+  font-size: 3cqw;
+} */
+.modal .action,
+.modal .modal-teams {
   /* padding: 20%; */
   display: flex;
   font-size: 3cqw;
@@ -205,12 +241,22 @@ main {
   gap: 1em;
 }
 
-.modal .action button {
-  font-size: 0.5em;
+.modal .modal-teams {
+  /* flex-direction: column; */
+  /* background-color: #e0e0e0; */
+  background-color: #4539ff;
+  border: 2px solid black;
+  padding: 0.5em;
+  border-radius: 0.5em;
+}
+
+.modal button {
+  font-size: 2rem;
   background-color: white;
   color: black;
   border: none;
   padding: 0.5em 1em;
+  margin: 0 2rem;
   border-radius: 0.5em;
   cursor: pointer;
 }
