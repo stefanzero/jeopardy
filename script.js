@@ -251,26 +251,52 @@ const categories = [
   new Category("DOM Events", domEvents),
 ];
 
-const board = document.getElementById("board");
-const scoreboard = document.querySelector(".scoreboard");
+// const board = document.getElementById("board");
+// const scoreboard = document.querySelector(".scoreboard");
 
 // const jeopardy = new Jeopardy(categories, board, scoreboard);
 
 class JeopardyModel {
-  constructor(categories, board, scoreboard) {
+  // constructor(categories, board, scoreboard) {
+  constructor(categories, numTeams) {
     this.categories = categories;
-    this.board = board;
-    this.scoreboard = scoreboard;
+    this.numTeams = numTeams;
+    this.scores = {};
+    // this.board = board;
+    // this.scoreboard = scoreboard;
   }
 
-  render() {}
+  setWinner(team, square) {
+    square.team = team;
+  }
+
+  calculateScores() {
+    // reset the scores object
+    for (const key in this.scores) {
+      if (this.scores.hasOwnProperty(key)) {
+        this.scores[key] = 0;
+      }
+    }
+
+    this.categories.forEach((category) => {
+      category.squares.forEach((square) => {
+        if (square.team) {
+          if (square.team in this.scores) {
+            this.scores[square.team] += square.value;
+          } else {
+            this.scores[square.team] = square.value;
+          }
+        }
+      });
+    });
+  }
 }
 
 class JeopardyView {
   constructor() {
     this.numTeams = document.getElementById("num-teams");
-    this.teamList = document.querySelector(".team-list");
-    this.teams = {};
+    this.scoreList = document.querySelector(".score-list");
+    this.scoreValues = {};
     this.squares = document.querySelectorAll(".square");
     this.addCheckboxes();
     this.modal = document.getElementById("modal");
@@ -278,12 +304,14 @@ class JeopardyView {
     this.modalQuestion = document.getElementById("modal-question");
     this.modalShowQuestionButton = this.modal.querySelector("#show-question");
     this.modalTeams = this.modal.querySelector(".modal-teams");
-    this.modalTeamButtons = this.modal.querySelector(".team-buttons");
-    this.modalDoneButton = this.modal.querySelector(".done");
+    this.modalWinnerButtonContainer =
+      this.modal.querySelector(".winner-buttons");
+    this.modalWinnerButtons = {};
+    this.modalDoneButton = this.modal.querySelector("button.done");
     // Default to 3 until setup modal is implemented
     const defaultNumTeams = 3;
-    this.updateNumTeams(defaultNumTeams);
-    this.addTeamButtons(defaultNumTeams);
+    this.createScoreListItems(defaultNumTeams);
+    this.addWinnerButtons(defaultNumTeams);
   }
 
   addCheckboxes() {
@@ -294,32 +322,42 @@ class JeopardyView {
     });
   }
 
-  updateNumTeams(numTeams) {
-    this.teamList.innerHTML = "";
+  createScoreListItems(numTeams) {
+    this.scoreList.innerHTML = "";
+    this.scoreValues = {};
     for (let i = 0; i < numTeams; i++) {
-      const team = document.createElement("li");
-      const teamName = document.createElement("span");
-      teamName.textContent = `Team ${i + 1}:`;
-      team.appendChild(teamName);
-      this.teamList.appendChild(team);
-      const teamScore = document.createElement("span");
-      teamScore.classList.add("team-score");
-      teamScore.dataset.team = i + 1;
-      teamScore.textContent = "0";
-      team.appendChild(teamScore);
-      this.teamList.appendChild(team);
+      const scoreItem = document.createElement("li");
+      const scoreTeam = document.createElement("span");
+      scoreTeam.textContent = `Team ${i + 1}:`;
+      scoreItem.appendChild(scoreTeam);
+      const scoreValue = document.createElement("span");
+      this.scoreValues[i + 1] = scoreValue;
+      scoreValue.classList.add("score-value");
+      scoreValue.dataset.team = i + 1;
+      scoreValue.textContent = "0";
+      scoreItem.appendChild(scoreValue);
+      this.scoreList.appendChild(scoreItem);
     }
   }
 
-  addTeamButtons(numTeams) {
+  updateScoreList(scores) {
+    for (let teamNumber in scores) {
+      const score = scores[teamNumber];
+      this.scoreValues[teamNumber].textContent = score;
+    }
+  }
+
+  addWinnerButtons(numTeams) {
     for (let i = 0; i < numTeams; i++) {
       const button = document.createElement("button");
       button.textContent = `Team ${i + 1}`;
-      this.modalTeamButtons.appendChild(button);
+      button.dataset.team = i + 1;
+      this.modalWinnerButtonContainer.appendChild(button);
+      this.modalWinnerButtons[i + 1] = button;
     }
   }
 
-  toggleBorder(square) {
+  toggleSquareBorder(square) {
     this.squares.forEach((square) => {
       square.classList.remove("square-border");
     });
@@ -330,11 +368,11 @@ class JeopardyView {
     }
   }
 
-  fadeOutSpan(square) {
+  fadeOutSquareSpan(square) {
     const span = square.querySelector("span");
     span.classList.add("fade");
   }
-  fadeInSpan(square) {
+  fadeInSquareSpan(square) {
     const span = square.querySelector("span");
     span.classList.remove("fade");
   }
@@ -351,8 +389,8 @@ class JeopardyView {
     }, 500);
     // Display the Set Winner section
     setTimeout(() => {
-      // this.modalTeamButtons.classList.remove("hidden");
-      // this.modalTeamButtons.classList.add("show");
+      // this.modalWinnerButtons.classList.remove("hidden");
+      // this.modalWinnerButtons.classList.add("show");
     }, 1000);
   }
 
@@ -370,12 +408,28 @@ class JeopardyView {
     this.modalShowQuestionButton.classList.remove("hidden");
     this.modalQuestion.classList.add("hidden");
   }
+  highlightQuestionWinner(team) {
+    for (let teamNumber in this.modalWinnerButtons) {
+      if (teamNumber == team) {
+        this.modalWinnerButtons[teamNumber].classList.add("selected");
+      } else {
+        this.modalWinnerButtons[teamNumber].classList.remove("selected");
+      }
+    }
+  }
+
+  resetQuestionWinners() {
+    for (let teamNumber in this.modalWinnerButtons) {
+      this.modalWinnerButtons[teamNumber].classList.remove("selected");
+    }
+  }
 }
 
 class JeopardyController {
   constructor(model, view) {
     this.model = model;
     this.view = view;
+    this.currentSquare = null;
     this.addCheckboxHandlers();
     this.addModalHandlers();
     this.view.numTeams.addEventListener(
@@ -386,7 +440,7 @@ class JeopardyController {
 
   handleNumTeamsChange() {
     const numTeams = Number(this.view.numTeams.value);
-    this.view.updateNumTeams(numTeams);
+    this.view.createScoreListItems(numTeams);
   }
 
   addCheckboxHandlers() {
@@ -401,13 +455,16 @@ class JeopardyController {
     const checked = checkbox.checked;
     const listItem = checkbox.parentNode;
     const pos = checkbox.parentNode.dataset.pos.split("-");
-    const square = this.model.categories[pos[0]].squares[pos[1]];
-    this.view.toggleBorder(listItem);
+    this.currentSquare = this.model.categories[pos[0]].squares[pos[1]];
+    this.view.toggleSquareBorder(listItem);
     if (checked) {
-      this.view.fadeOutSpan(listItem);
-      this.view.displayModal(square);
+      this.view.fadeOutSquareSpan(listItem);
+      this.view.displayModal(this.currentSquare);
     } else {
-      this.view.fadeInSpan(listItem);
+      this.currentSquare.team = null;
+      this.model.calculateScores();
+      this.view.updateScoreList(this.model.scores);
+      this.view.fadeInSquareSpan(listItem);
     }
   }
 
@@ -420,16 +477,36 @@ class JeopardyController {
       "click",
       this.handleModalShowQuestion.bind(this),
     );
+    for (let teamNumber in this.view.modalWinnerButtons) {
+      this.view.modalWinnerButtons[teamNumber].addEventListener(
+        "click",
+        this.handleWinnerButtonClick.bind(this),
+      );
+    }
   }
   handleModalDone() {
     this.view.hideQuestion();
+    this.view.resetQuestionWinners();
     this.view.hideModal();
   }
   handleModalShowQuestion() {
     this.view.showQuestion();
   }
+
+  handleWinnerButtonClick(event) {
+    const button = event.target;
+    const team = Number(button.dataset.team);
+    this.view.highlightQuestionWinner(team);
+    this.currentSquare.team = team;
+    this.model.calculateScores();
+    this.view.updateScoreList(this.model.scores);
+  }
+  calculateScores() {
+    this.model.calculateScores();
+  }
 }
 
-const jeopardyModel = new JeopardyModel(categories, board, scoreboard);
+// const jeopardyModel = new JeopardyModel(categories, board, scoreboard);
+const jeopardyModel = new JeopardyModel(categories);
 const jeopardyView = new JeopardyView();
 const jeopardyController = new JeopardyController(jeopardyModel, jeopardyView);
