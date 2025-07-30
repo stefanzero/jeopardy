@@ -43,40 +43,40 @@ const jeopardyData = {
       ],
     },
     {
-      name: "HTML Tags",
+      name: "HTML Elements",
       squares: [
         {
           question: "What is <nav>?",
           answer:
-            "This HTML tag is used to create a menu of links at the top of a page.",
+            "This HTML element represents a section of a page whose purpose is to provide navigation links, either within the current document or to other documents. ",
           value: 200,
           team: null,
         },
         {
           question: "What is <figure>?",
           answer:
-            "This HTML tag is used to embed self-contained content, like illustrations, diagrams, photos, etc.",
+            "This HTML element is used to embed self-contained content, like illustrations, diagrams, photos, etc.",
           value: 400,
           team: null,
         },
         {
           question: "What is <input>?",
           answer:
-            "This HTML tag is used to collect user input, such as text, checkboxes, and submit buttons.",
+            "This HTML element is used to collect user input, such as text, checkboxes, and submit buttons.",
           value: 600,
           team: null,
         },
         {
           question: "What <video>?",
           answer:
-            "This HTML tag is used to embed video content in a document, such as movies or other video streams.",
+            "This HTML element is used to embed video content in a document, such as movies or other video streams.",
           value: 800,
           team: null,
         },
         {
           question: "What is <form>?",
           answer:
-            "This HTML tag is used to create a collection of input elements and a submit button.",
+            "This HTML element is used to create a collection of input elements and a submit button.",
           value: 1000,
           team: null,
         },

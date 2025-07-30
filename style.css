@@ -227,6 +227,7 @@ main {
 
 .modal .timer {
   /* padding: 20%; */
+  width: 2em;
 }
 
 /* #show-question {

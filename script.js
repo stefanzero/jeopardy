@@ -69,6 +69,7 @@ class JeopardyModel {
 class JeopardyView {
   constructor() {
     this.numTeams = document.getElementById("num-teams");
+    this.categories = document.querySelectorAll(".category");
     this.scoreList = document.querySelector(".score-list");
     this.scoreValues = {};
     this.squares = document.querySelectorAll(".square");
@@ -81,11 +82,19 @@ class JeopardyView {
     this.modalWinnerButtonContainer =
       this.modal.querySelector(".winner-buttons");
     this.modalWinnerButtons = {};
+    this.modalCountdown = this.modal.querySelector("#modal-countdown");
+    this.countDownId = null;
     this.modalDoneButton = this.modal.querySelector("button.done");
     // Default to 3 until setup modal is implemented
     const defaultNumTeams = 3;
     this.createScoreListItems(defaultNumTeams);
     this.addWinnerButtons(defaultNumTeams);
+  }
+
+  setCategories(categories) {
+    this.categories.forEach((category, index) => {
+      category.textContent = categories[index].topic;
+    }); 
   }
 
   addCheckboxes() {
@@ -132,10 +141,11 @@ class JeopardyView {
   }
 
   toggleSquareBorder(square) {
+    const hasBorder = square.classList.contains("square-border");
     this.squares.forEach((square) => {
       square.classList.remove("square-border");
     });
-    if (square.classList.contains("square-border")) {
+    if (hasBorder){
       square.classList.remove("square-border");
     } else {
       square.classList.add("square-border");
@@ -197,12 +207,39 @@ class JeopardyView {
       this.modalWinnerButtons[teamNumber].classList.remove("selected");
     }
   }
+
+  startCountdown() {
+    this.modalCountdown.textContent = 30;
+    this.modalCountdown.classList.remove("hidden");
+    if (this.countDownId) {
+      clearInterval(this.countDownId);
+    }
+
+    this.countDownId = setInterval(() => {
+      this.modalCountdown.textContent--;
+      if (this.modalCountdown.textContent <= 0) {
+        clearInterval(this.countDownId);
+      }
+    }, 1000);
+  }
+
+  stopCountdown() {
+    clearInterval(this.countDownId);
+    this.modalCountdown.classList.add("hidden");
+    this.modalCountdown.textContent = 30;
+    this.countDownId = null;
+  }
+
+  resetCountdown() {
+    this.modalCountdown.textContent = 30;
+  }
 }
 
 class JeopardyController {
   constructor(model, view) {
     this.model = model;
     this.view = view;
+    this.view.setCategories(this.model.categories);
     this.currentSquare = null;
     this.addCheckboxHandlers();
     this.addModalHandlers();
@@ -233,8 +270,10 @@ class JeopardyController {
     if (checked) {
       this.view.fadeOutSquareSpan(listItem);
       this.view.displayModal(this.currentSquare);
+      this.view.startCountdown();
     } else {
       this.currentSquare.team = null;
+      this.view.stopCountdown();
       this.model.calculateScores();
       this.view.updateScoreList(this.model.scores);
       this.view.fadeInSquareSpan(listItem);
