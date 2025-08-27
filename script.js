@@ -171,11 +171,11 @@ class JeopardyView {
     setTimeout(() => {
       modal.classList.add("expand");
     }, 500);
-    // Display the Set Winner section
-    setTimeout(() => {
+    // Animate display of the Set Winner section
+    // setTimeout(() => {
       // this.modalWinnerButtons.classList.remove("hidden");
       // this.modalWinnerButtons.classList.add("show");
-    }, 1000);
+    // }, 1000);
   }
 
   hideModal() {
